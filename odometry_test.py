@@ -4,23 +4,9 @@
 import os, logging, numpy as np, matplotlib.pyplot as plt
 import keras, pickle
 import pdb
+import vehicle
 
-class Vehicle:
-    def __init__(self, Rr, Rl, space_wheels):
-        self.right_wheel_radius = Rr
-        self.left_wheel_radius = Rl
-        self.space_wheels = space_wheels
 
-    def generate_random_data(self, w_min, w_max, Nsample):
-        Rr = self.right_wheel_radius
-        Rl = self.left_wheel_radius
-        L = self.space_wheels
-        wr = np.random.uniform(w_min, w_max, Nsample)
-        wl = np.random.uniform(w_min, w_max, Nsample)
-        V = 0.5*(Rr*wr+Rl*wl)+0.01*np.random.randn(Nsample)
-        omega = 0.5*(Rr*wr-Rl*(wl))/L+0.01*np.random.randn(Nsample)
-        ds = np.array([wr, wl, V, omega])
-        return ds
 
 def wheels_radius_AN(ds):
     wr = ds[0]
