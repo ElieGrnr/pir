@@ -4,7 +4,8 @@
 import os, logging, numpy as np, matplotlib.pyplot as plt
 import keras, pickle
 import pdb
-import vehicle
+from vehicle import Vehicle
+import description as descr
 
 
 
@@ -79,7 +80,6 @@ def all_param_AN(ds):
     weights = hidden_layer.get_weights()[0]
     Rr_est = weights[0][0]*2
     Rl_est = weights[1][0]*2
-    print(np.shape(weights))
     L_est1 = 1/(2*weights[0][1]/Rr_est)
     L_est2 = -1/(2*weights[1][1]/Rr_est)
     return Rr_est, Rl_est, (L_est2+L_est1)/2
@@ -113,7 +113,7 @@ def space_wheels_INV(ds, R_est):
 
 if __name__ == '__main__':
     Robot = Vehicle(0.08, 0.081, 0.2)
-    ds = Robot.generate_random_data(-10, 10, 5000)
+    ds = Robot.generate_random_data(-10, 10, 5000, True)
     #Rr_est, Rl_est = wheels_radius_AN(ds)
     #L_est = space_wheels_AN(ds, (Rr_est, Rl_est))
     #Rr_est, Rl_est = wheels_radius_INV(ds)
@@ -122,5 +122,11 @@ if __name__ == '__main__':
     print("Rayon roue droite estimé : ", Rr_est)
     print("Rayon roue gauche estimé : ", Rl_est)
     print("Voie estimée : ", L_est)
+
+    #plt.figure()
+    #descr.data_description(ds)
+    descr.plot3D(ds, 4)
+    descr.results_overlaid_on_data(ds, Rr_est, Rl_est, L_est, -10, 10)
+    plt.show()
 
 

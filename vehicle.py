@@ -22,9 +22,9 @@ class Vehicle:
         omega = 0.5*(Rr*wr-Rl*(wl))/L+0.01*np.random.randn(Nsample)
 
         if outliers:
-            utliers_V = int(ratio_V*N)
-            nb_outliers_omega = int(ratio_omega*N)
-            index = [i for i in range(N)]
+            nb_outliers_V = int(ratio_V*Nsample)
+            nb_outliers_omega = int(ratio_omega*Nsample)
+            index = [i for i in range(Nsample)]
             index_V = random.sample(index, nb_outliers_V)
             index_omega = random.sample(index, nb_outliers_omega)
             for i in index_V:
