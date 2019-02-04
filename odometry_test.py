@@ -25,7 +25,7 @@ def wheels_radius_AN(ds):
     opt = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
     ann.compile(loss='mean_squared_error', optimizer=opt)
     ann_in, ann_out = input, V
-    history = ann.fit(ann_in, ann_out, epochs=70, batch_size=64,  verbose=1,
+    history = ann.fit(ann_in, ann_out, epochs=30, batch_size=64,  verbose=1,
                    shuffle=True, validation_split=0.1)#, callbacks=callbacks)
     weights = hidden_layer.get_weights()
     Rr_est = 2*weights[0][0]
@@ -48,7 +48,7 @@ def space_wheels_AN(ds, R_est):
     opt = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
     ann.compile(loss='mean_squared_error', optimizer=opt)
     ann_in, ann_out = input, omega
-    history = ann.fit(ann_in, ann_out, epochs=70, batch_size=64,  verbose=1,
+    history = ann.fit(ann_in, ann_out, epochs=30, batch_size=64,  verbose=1,
                    shuffle=True, validation_split=0.1)#, callbacks=callbacks)
     weights = hidden_layer.get_weights()
     L_est1 = 1/(2*weights[0][0]/Rr_est)
@@ -75,8 +75,17 @@ def all_param_AN(ds):
     opt = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
     ann.compile(loss='mean_squared_error', optimizer=opt)
     ann_in, ann_out = input, output
-    history = ann.fit(ann_in, ann_out, epochs=70, batch_size=64,  verbose=1,
+    history = ann.fit(ann_in, ann_out, epochs=30, batch_size=64,  verbose=1,
                    shuffle=True, validation_split=0.1)#, callbacks=callbacks)
+
+    """plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show()"""
+
     weights = hidden_layer.get_weights()[0]
     Rr_est = weights[0][0]*2
     Rl_est = weights[1][0]*2
@@ -112,7 +121,7 @@ def space_wheels_INV(ds, R_est):
 
 
 if __name__ == '__main__':
-    Robot = Vehicle(0.08, 0.081, 0.2)
+    Robot = Vehicle(0.08, 0.081, 0.2, 0.01, 0.01)
     ds = Robot.generate_random_data(-10, 10, 5000, True)
     #Rr_est, Rl_est = wheels_radius_AN(ds)
     #L_est = space_wheels_AN(ds, (Rr_est, Rl_est))
@@ -121,11 +130,11 @@ if __name__ == '__main__':
     Rr_est, Rl_est, L_est = all_param_AN(ds)
     print("Rayon roue droite estimé : ", Rr_est)
     print("Rayon roue gauche estimé : ", Rl_est)
-    print("Voie estimée : ", L_est)
+    print("Voie estimée : ", L_est) 
 
     #plt.figure()
     #descr.data_description(ds)
-    descr.plot3D(ds, 4)
+    #descr.plot3D(ds, 4)
     descr.results_overlaid_on_data(ds, Rr_est, Rl_est, L_est, -10, 10)
     plt.show()
 

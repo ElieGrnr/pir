@@ -7,19 +7,23 @@ import keras, pickle
 import pdb
 
 class Vehicle:
-    def __init__(self, Rr, Rl, space_wheels):
+    def __init__(self, Rr, Rl, space_wheels, sigma_V, sigma_omega):
         self.right_wheel_radius = Rr
         self.left_wheel_radius = Rl
         self.space_wheels = space_wheels
+        self.sigma_V = sigma_V
+        self.sigma_omega = sigma_omega
 
     def generate_random_data(self, w_min, w_max, Nsample, outliers=False, ratio_V=0.1, ratio_omega=0.1, coef_V=1, coef_omega=1):
         Rr = self.right_wheel_radius
         Rl = self.left_wheel_radius
         L = self.space_wheels
+        sigma_V = self.sigma_V
+        sigma_omega = self.sigma_omega
         wr = np.random.uniform(w_min, w_max, Nsample)
         wl = np.random.uniform(w_min, w_max, Nsample)
-        V = 0.5*(Rr*wr+Rl*wl)+0.01*np.random.randn(Nsample)
-        omega = 0.5*(Rr*wr-Rl*(wl))/L+0.01*np.random.randn(Nsample)
+        V = 0.5*(Rr*wr+Rl*wl)+sigma_V*np.random.randn(Nsample)
+        omega = 0.5*(Rr*wr-Rl*(wl))/L+sigma_omega*np.random.randn(Nsample)
 
         if outliers:
             nb_outliers_V = int(ratio_V*Nsample)
