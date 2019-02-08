@@ -8,6 +8,17 @@ import odometry_test as od
 from vehicle import Vehicle
 
 def comparison_noise(sigma_V, sigma_omega):
+	"""
+		makes a comparison of relative error  according 3 methods
+		Method 1 : pseudoinv
+		Method 2 : 2 AN
+		Method 3 : single AN
+		In : sigma_V : noise for V
+			 sigma_omega : noise for omega
+		Out : an array([[error_Rr_method1, error_Rl_method1,error_L_method1],
+						[error_Rr_method2, error_Rl_method2,error_L_method2],
+						[error_Rr_method3, error_Rl_method3,error_L_method3]])
+	"""
 	Robot = Vehicle(0.08, 0.081, 0.2, sigma_V, sigma_omega)
 	Rr = Robot.right_wheel_radius
 	Rl = Robot.left_wheel_radius
@@ -28,6 +39,15 @@ def comparison_noise(sigma_V, sigma_omega):
 	return error
 
 def plot_comparison(sigma_V_max, sigma_omega_max):
+	"""
+		Makes a comparison of relative error according 3 methods and according noise
+		Method 1 : pseudoinv
+		Method 2 : 2 AN
+		Method 3 : single AN
+		In : sigma_V : noise from 0 to sigma_V
+			 sigma_omega : noise from 0 to sigma_omega
+		Out : a plot
+	"""
 	tab_sigma_V = np.linspace(0, sigma_V_max, 5)
 	tab_sigma_omega = np.linspace(0, sigma_omega_max, 5)
 	error_V = []
