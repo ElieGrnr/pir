@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import division
 
 import os, logging, numpy as np, matplotlib.pyplot as plt
 import keras, pickle
@@ -7,8 +8,9 @@ import pdb
 import sklearn.linear_model
 from vehicle import Vehicle
 import description as descr
+import myutils as ut
 
-
+import homere_control.io_dataset as iodata
 
 def wheels_radius_AN(ds):
     """
@@ -183,12 +185,16 @@ def space_wheels_RANSAC(ds, R_est):
 
 
 if __name__ == '__main__':
-    Robot = Vehicle(0.08, 0.081, 0.2, 0.1, 0.5) #Rr, Rl, L, sigma_V, sigma_omega
-    ds = Robot.generate_random_data(-10, 10, 5000, True, 0.5, 0.5, 2, 2) #wmin, wmax, nbsample, outliers, 
+    #Robot = Vehicle(0.08, 0.081, 0.2, 0.1, 0.5) #Rr, Rl, L, sigma_V, sigma_omega
+    #ds = Robot.generate_random_data(-10, 10, 5000, True, 0.5, 0.5, 2, 2) #wmin, wmax, nbsample, outliers, 
     #ration_V, ratio_omega, coef_V, coef_omega
 
-    descr.plot3D(ds)
-    plt.show()
+    filename, type = '/home/poine/work/homere/homere_control/data/homere_io_10.npz', 'homere'
+    ds = ut.data_converter(filename, type)
+
+
+    #descr.plot3D(ds)
+    #plt.show()
 
     print "\nPseudo-inverse : "
     Rr_est, Rl_est = wheels_radius_INV(ds)
@@ -214,6 +220,9 @@ if __name__ == '__main__':
     #descr.data_description(ds)
     #descr.plot3D(ds, 4)
     #descr.results_overlaid_on_data(ds, Rr_est, Rl_est, L_est, -10, 10)
-    #plt.show()
+    #plt.show()"""
+
+    
+
 
 
