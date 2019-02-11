@@ -8,8 +8,10 @@ import pdb
 
 import homere_control.io_dataset as iodata
 
-filename, _type = '/home/poine/work/homere/homere_control/data/homere_io_10.npz', 'homere'
-_ds = iodata.DataSet(filename, _type)
-pdb.set_trace()
-iodata.plot_all(_ds)
+for i in range(1, 11):
+	filename, _type = '/home/poine/work/homere/homere_control/data/homere_io_{}.npz'.format(i), 'homere'
+	ds = iodata.DataSet(filename, _type)
+	iodata.plot2d(ds)
+	plt.title("test {}".format(i))
+#iodata.plot_all(_ds)
 plt.show()
