@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import division
+
 import os, logging, numpy as np, matplotlib.pyplot as plt
 import keras, pickle
+import keras.backend as K
 import pdb
 import odometry_test as od
 from vehicle import Vehicle
@@ -38,7 +41,7 @@ def comparison_noise(sigma_V, sigma_omega):
 		[abs((Rr_est3-Rr)/Rr), abs((Rl_est3-Rl)/Rl), abs((L_est3-L)/L)]])
 	return error
 
-def plot_comparison(sigma_V_max, sigma_omega_max):
+def plot_comparison_noise(sigma_V_max, sigma_omega_max):
 	"""
 		Makes a comparison of relative error according 3 methods and according noise
 		Method 1 : pseudoinv
@@ -121,7 +124,53 @@ def plot_comparison(sigma_V_max, sigma_omega_max):
 
 	plt.show()
 
-plot_comparison(0.5, 0.5)
+
+def comparaison_minkowski(Robot, N):
+	"""
+		makes a comparison for N different values of r factor in Minkowski formula error.
+		uses the same generated dataset. 
+		In : a Vehicle from Vehicle class in vehicle.py ; N : nb of points for the plot.
+	"""
+	ds = Robot.generate_random_data(-10, 10, 5000, True, 0.5, 0.5, 1.5, 1.5)
+	Rr = Robot.right_wheel_radius 		#true Rr
+	Rl = Robot.left_wheel_radius  		#true Rl
+	L = Robot.space_wheels 				#true L
+	relative_error = []
+	r_minkowski = np.linspace(1,2,N)
+	for _r in r_minkowski:              #be careful : _r global variable.
+
+		def minkowski_loss(y_true, y_pred):
+			return K.mean(K.pow(K.abs(y_pred-y_true),_r))
+
+		Rr_est, Rl_est, L_est = od.all_param_AN(ds, minkowski_loss)
+
+		relative_error.append([100*abs(Rr_est-Rr)/Rr, 100*abs(Rl_est-Rl)/Rl, 100*abs(L_est-L)/L])
+		#relative error = N*3 array
+
+	plt.figure()
+	plt.subplot(311)
+	plt.plot(r_minkowski, [relative_error[i][0] for i in range(N)])
+	plt.xlabel("r")
+	plt.ylabel("erreur relative")
+	plt.title("roue droite")
+	plt.subplot(312)
+	plt.plot(r_minkowski, [relative_error[i][1] for i in range(N)])
+	plt.xlabel("r")
+	plt.ylabel("erreur relative")
+	plt.title("roue gauche")
+	plt.subplot(313)
+	plt.plot(r_minkowski, [relative_error[i][2] for i in range(N)])
+	plt.xlabel("r")
+	plt.ylabel("erreur relative")
+	plt.title("espace")
+	plt.show()
+	
+
+
+Robot = Vehicle(0.08, 0.081, 0.2, 0.1, 0.5)
+comparaison_minkowski(Robot, 8)
+
+#plot_comparison(0.5, 0.5)
 
 
 

@@ -4,6 +4,7 @@ from __future__ import division
 
 import os, logging, numpy as np, matplotlib.pyplot as plt
 import keras, pickle
+import keras.backend as K 
 import pdb
 import sklearn.linear_model
 from vehicle import Vehicle
@@ -12,7 +13,14 @@ import myutils as ut
 
 import homere_control.io_dataset as iodata
 
-def wheels_radius_AN(ds):
+def minkowski_loss(y_true, y_pred):
+    """
+        Compute Minkowski's loss for AN. Better than MSE if outliers (maybe not).
+    """
+    r = 1.5 #often 0.4
+    return K.mean(K.pow(K.abs(y_pred-y_true),r))
+
+def wheels_radius_AN(ds, myloss='mean_squared_error'):
     """
         Compute the wheels radius of both wheels, presumed different, according a AN (no hidden layer)
         In : ds, a data set ds = [wr, wl, V, omega]
@@ -31,7 +39,7 @@ def wheels_radius_AN(ds):
     output_layer = hidden_layer(input_layer)
     ann = keras.models.Model(inputs=input_layer, outputs=output_layer)
     opt = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
-    ann.compile(loss='mean_squared_error', optimizer=opt)
+    ann.compile(loss=myloss(1.5), optimizer=opt)
     ann_in, ann_out = input, V
     history = ann.fit(ann_in, ann_out, epochs=30, batch_size=64,  verbose=0,
                    shuffle=True, validation_split=0.1)#, callbacks=callbacks)
@@ -40,7 +48,7 @@ def wheels_radius_AN(ds):
     Rl_est = 2*weights[0][1]
     return Rr_est[0], Rl_est[0]
 
-def space_wheels_AN(ds, R_est):
+def space_wheels_AN(ds, R_est, myloss='mean_squared_error'):
     """
         Compute the space wheel according a AN (no hidden layer)
         In : ds (a data set ds = [wr, wl, V, omega]) , estimated radius (a couple (rights, left))
@@ -59,7 +67,7 @@ def space_wheels_AN(ds, R_est):
     output_layer = hidden_layer(input_layer)
     ann = keras.models.Model(inputs=input_layer, outputs=output_layer)
     opt = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
-    ann.compile(loss='mean_squared_error', optimizer=opt)
+    ann.compile(loss=myloss, optimizer=opt)
     ann_in, ann_out = input, omega
     history = ann.fit(ann_in, ann_out, epochs=30, batch_size=64,  verbose=0,
                    shuffle=True, validation_split=0.1)#, callbacks=callbacks)
@@ -69,7 +77,7 @@ def space_wheels_AN(ds, R_est):
     L_est = (L_est1+L_est2)/2   #moyenne des deux longueurs obtenues
     return L_est[0]
 
-def all_param_AN(ds):
+def all_param_AN(ds, myloss='mean_squared_error'):
     """
         Compute the wheels radius of both wheels and the space wheel according a single AN (no hidden layer)
         In : ds (a data set ds = [wr, wl, V, omega])
@@ -91,7 +99,7 @@ def all_param_AN(ds):
     output_layer = hidden_layer(input_layer)
     ann = keras.models.Model(inputs=input_layer, outputs=output_layer)
     opt = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
-    ann.compile(loss='mean_squared_error', optimizer=opt)
+    ann.compile(loss=myloss, optimizer=opt)
     ann_in, ann_out = input, output
     history = ann.fit(ann_in, ann_out, epochs=30, batch_size=64,  verbose=0,
                    shuffle=True, validation_split=0.1)#, callbacks=callbacks)
@@ -193,7 +201,7 @@ if __name__ == '__main__':
     ds = ut.data_converter(filename, type)
 
 
-    #descr.plot3D(ds)
+    #descr.plot3D(ds, step=10) #step=4 (by default)
     #plt.show()
 
     print "\nPseudo-inverse : "
@@ -211,7 +219,7 @@ if __name__ == '__main__':
     print "-------Voie estimée : ", L_est
 
     print("\nRéseau de neurones : ")
-    Rr_est, Rl_est, L_est = all_param_AN(ds)
+    Rr_est, Rl_est, L_est = all_param_AN(ds, minkowski_loss)
     print "-------Rayon roue droite estimé : ", Rr_est
     print "-------Rayon roue gauche estimé : ", Rl_est
     print "-------Voie estimée : ", L_est
