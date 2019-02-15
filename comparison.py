@@ -18,15 +18,16 @@ def comparison_noise(sigma_V, sigma_omega):
 		Method 3 : single AN
 		In : sigma_V : noise for V
 			 sigma_omega : noise for omega
-		Out : an array([[error_Rr_method1, error_Rl_method1,error_L_method1],
-						[error_Rr_method2, error_Rl_method2,error_L_method2],
-						[error_Rr_method3, error_Rl_method3,error_L_method3]])
+		Out : an array([[error_Rr_method1, error_Rl_method1, error_L_method1],
+						[error_Rr_method2, error_Rl_method2, error_L_method2],
+						[error_Rr_method3, error_Rl_method3, error_L_method3]])
 	"""
 	Robot = Vehicle(0.08, 0.081, 0.2, sigma_V, sigma_omega)
 	Rr = Robot.right_wheel_radius
 	Rl = Robot.left_wheel_radius
 	L = Robot.space_wheels
-	ds = Robot.generate_random_data(-10, 10, 5000, False)
+
+	ds = Robot.generate_data(-10, 10, 5000)
 
 	Rr_est3, Rl_est3, L_est3 = od.all_param_AN(ds)
 
@@ -125,13 +126,13 @@ def plot_comparison_noise(sigma_V_max, sigma_omega_max):
 	plt.show()
 
 
-def comparaison_minkowski(Robot, N):
+def comparaison_minkowski(Robot, ds, N):
 	"""
 		makes a comparison for N different values of r factor in Minkowski formula error.
 		uses the same generated dataset. 
 		In : a Vehicle from Vehicle class in vehicle.py ; N : nb of points for the plot.
 	"""
-	ds = Robot.generate_random_data(-10, 10, 5000, True, 0.5, 0.5, 1.5, 1.5)
+	
 	Rr = Robot.right_wheel_radius 		#true Rr
 	Rl = Robot.left_wheel_radius  		#true Rl
 	L = Robot.space_wheels 				#true L
@@ -166,11 +167,6 @@ def comparaison_minkowski(Robot, N):
 	plt.show()
 	
 
-
-Robot = Vehicle(0.08, 0.081, 0.2, 0.1, 0.5)
-comparaison_minkowski(Robot, 8)
-
-#plot_comparison(0.5, 0.5)
 
 
 

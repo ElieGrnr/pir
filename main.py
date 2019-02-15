@@ -12,40 +12,27 @@ from vehicle import Vehicle
 import description as descr
 import myutils as ut
 import odometry_test as odo
+import comparison
+
 import numpy as np, matplotlib.pyplot as plt
 import homere_control.io_dataset as iodata
 
 if __name__ == '__main__':
-    #Robot = Vehicle(0.08, 0.081, 0.2, 0.1, 0.5) #Rr, Rl, L, sigma_V, sigma_omega
-    #ds = Robot.generate_random_data(-10, 10, 5000, True, 0.5, 0.5, 2, 2) #wmin, wmax, nbsample, outliers, 
-    #ration_V, ratio_omega, coef_V, coef_omega
-
-    filename, type = '/home/poine/work/homere/homere_control/data/homere_io_10.npz', 'homere'
-    ds = ut.data_converter(filename, type)
+    Robot = Vehicle(0.08, 0.081, 0.2, 0.1, 0.5) #Rr, Rl, L, sigma_V, sigma_omega
+    #ds = Robot.generate_data(-10, 10, 5000) #Vehicle + w_min, w_max, Nsample
+    ds = Robot.generate_outliers_uniform(-10, 10, 5000, 0.5, 0.5, 0.7, 2.2, 2.5, 2.5) #ratio_V, ratio_o, bias_V, bias_o, coef_V, coef_o
 
 
-    descr.plot3D(ds, step=20) #step=4 (by default)
+    #filename, type = '/home/poine/work/homere/homere_control/data/homere_io_10.npz', 'homere'
+    #ds = ut.data_converter(filename, type)
+
+    comparison.comparaison_minkowski(Robot, ds, 8)
+
+    descr.plot3D(ds, step=4) #step=4 (by default)
     plt.show()
 
-    print "\nPseudo-inverse : "
-    Rr_est, Rl_est = odo.wheels_radius_INV(ds)
-    L_est = odo.space_wheels_INV(ds, (Rr_est, Rl_est))
-    print "-------Rayon roue droite estimé : ", Rr_est
-    print "-------Rayon roue gauche estimé : ", Rl_est
-    print "-------Voie estimée : ", L_est
+    #odo.all_methods(ds)
 
-    print("\nRANSAC : ")
-    Rr_est, Rl_est = odo.wheels_radius_RANSAC(ds)
-    L_est = odo.space_wheels_RANSAC(ds, (Rr_est, Rl_est))
-    print "-------Rayon roue droite estimé : ", Rr_est
-    print "-------Rayon roue gauche estimé : ", Rl_est
-    print "-------Voie estimée : ", L_est
-
-    print("\nRéseau de neurones : ")
-    Rr_est, Rl_est, L_est = odo.all_param_AN(ds, odo.minkowski_loss)
-    print "-------Rayon roue droite estimé : ", Rr_est
-    print "-------Rayon roue gauche estimé : ", Rl_est
-    print "-------Voie estimée : ", L_est
 
     #plt.figure()
     #descr.data_description(ds)

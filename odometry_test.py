@@ -101,7 +101,7 @@ def all_param_AN(ds, myloss='mean_squared_error'):
     opt = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
     ann.compile(loss=myloss, optimizer=opt)
     ann_in, ann_out = input, output
-    history = ann.fit(ann_in, ann_out, epochs=30, batch_size=64,  verbose=0,
+    history = ann.fit(ann_in, ann_out, epochs=40, batch_size=64,  verbose=0,
                    shuffle=True, validation_split=0.1)#, callbacks=callbacks)
 
     """plt.plot(history.history['loss'])
@@ -188,3 +188,24 @@ def space_wheels_RANSAC(ds, R_est):
     ransac_space.fit(H2, omega)
     L_est = 1/ransac_space.estimator_.coef_[0]
     return L_est
+
+def all_methods(ds):
+    print "\nPseudo-inverse : "
+    Rr_est, Rl_est = wheels_radius_INV(ds)
+    L_est = space_wheels_INV(ds, (Rr_est, Rl_est))
+    print "-------Rayon roue droite estimé : ", Rr_est
+    print "-------Rayon roue gauche estimé : ", Rl_est
+    print "-------Voie estimée : ", L_est
+
+    print("\nRANSAC : ")
+    Rr_est, Rl_est = wheels_radius_RANSAC(ds)
+    L_est = space_wheels_RANSAC(ds, (Rr_est, Rl_est))
+    print "-------Rayon roue droite estimé : ", Rr_est
+    print "-------Rayon roue gauche estimé : ", Rl_est
+    print "-------Voie estimée : ", L_est
+
+    print("\nRéseau de neurones : ")
+    Rr_est, Rl_est, L_est = all_param_AN(ds, minkowski_loss)
+    print "-------Rayon roue droite estimé : ", Rr_est
+    print "-------Rayon roue gauche estimé : ", Rl_est
+    print "-------Voie estimée : ", L_est
