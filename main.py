@@ -24,7 +24,7 @@ if __name__ == '__main__':
     ds = ut.data_converter(filename, type)
 
 
-    descr.plot3D(ds, step=10) #step=4 (by default)
+    descr.plot3D(ds, step=20) #step=4 (by default)
     plt.show()
 
     print "\nPseudo-inverse : "
