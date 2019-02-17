@@ -129,11 +129,11 @@ def wheels_radius_INV(ds):
     wl = ds[1]
     V = ds[2]
     Nsample = len(wr)
-    H1 = np.zeros((Nsample,2))
-    H1[:,0] = wr*0.5
-    H1[:,1] = wl*0.5
-    X1 = np.dot(np.linalg.pinv(H1),V)
-    Rl_est, Rr_est = X1[1], X1[0]
+    H = np.zeros((Nsample,2))
+    H[:,0] = wr*0.5
+    H[:,1] = wl*0.5 
+    X = np.dot(np.linalg.pinv(H),V) #X=rayons estimés
+    Rl_est, Rr_est = X[1], X[0]
     return Rr_est, Rl_est
 
 def space_wheels_INV(ds, R_est):
@@ -147,10 +147,10 @@ def space_wheels_INV(ds, R_est):
     omega = ds[3]
     Rl_est, Rr_est = R_est[1], R_est[0]
     Nsample = len(ds[0])
-    H2 = np.zeros((Nsample,1))
-    H2[:,0] = 0.5*(Rr_est*wr-Rl_est*(wl)) 
-    X2 = np.dot(np.linalg.pinv(H2),omega)
-    L_est = 1/X2[0]
+    H = np.zeros((Nsample,1))
+    H[:,0] = 0.5*(Rr_est*wr-Rl_est*(wl)) 
+    X = np.dot(np.linalg.pinv(H),omega)
+    L_est = 1/X[0]
     return L_est
 
 def wheels_radius_RANSAC(ds):
@@ -163,11 +163,11 @@ def wheels_radius_RANSAC(ds):
     wl = ds[1]
     V = ds[2]
     Nsample = len(wr)
-    H1 = np.zeros((Nsample,2))
-    H1[:,0] = wr*0.5
-    H1[:,1] = wl*0.5
+    H = np.zeros((Nsample,2))
+    H[:,0] = wr*0.5
+    H[:,1] = wl*0.5
     ransac_radius = sklearn.linear_model.RANSACRegressor(base_estimator=sklearn.linear_model.LinearRegression(fit_intercept=False))
-    ransac_radius.fit(H1, V)
+    ransac_radius.fit(H, V)
     [Rr_est, Rl_est] = ransac_radius.estimator_.coef_
     return Rr_est, Rl_est
 
@@ -182,12 +182,29 @@ def space_wheels_RANSAC(ds, R_est):
     omega = ds[3]
     Rr_est, Rl_est = R_est[0], R_est[1]
     Nsample = len(ds[0])
-    H2 = np.zeros((Nsample,1))
-    H2[:,0] = 0.5*(Rr_est*wr-Rl_est*(wl)) 
+    H = np.zeros((Nsample,1))
+    H[:,0] = 0.5*(Rr_est*wr-Rl_est*(wl)) 
     ransac_space = sklearn.linear_model.RANSACRegressor(base_estimator=sklearn.linear_model.LinearRegression(fit_intercept=False))
-    ransac_space.fit(H2, omega)
+    ransac_space.fit(H, omega)
     L_est = 1/ransac_space.estimator_.coef_[0]
     return L_est
+
+def residuals(ds, Rr_est, Rl_est, L_est):
+    """
+        Computes residuals: Vreal-Vestimated and omega_real - omega_estimated
+        Gives sigma and mu. (std and mean)
+    """
+    wr = ds[0]
+    wl = ds[1]
+    V = ds[2]
+    omega = ds[3]
+    res_V = V - 0.5*(Rr_est*wr+Rl_est*wl) #res=Vréel - Vestimé
+    res_omega = omega - (0.5/L_est)*(Rr_est*wr-Rl_est*wl)  #res=Oréel-Oestimé
+
+    res_V_sigma, res_V_mu = np.std(res_V), np.mean(res_V)
+    res_omega_sigma, res_omega_mu = np.std(res_omega), np.mean(res_omega)
+
+    return [[res_V, res_V_mu, res_V_sigma], [res_omega, res_omega_mu, res_omega_sigma]]
 
 def all_methods(ds):
     print "\nPseudo-inverse : "
