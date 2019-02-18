@@ -18,17 +18,22 @@ import numpy as np, matplotlib.pyplot as plt
 import homere_control.io_dataset as iodata
 
 if __name__ == '__main__':
-    Robot = Vehicle(0.08, 0.081, 0.2, 0.1, 0.5) #Rr, Rl, L, sigma_V, sigma_omega
+    #Robot = Vehicle(0.08, 0.081, 0.2, 1, 4) #Rr, Rl, L, sigma_V, sigma_omega
     #ds = Robot.generate_data(-10, 10, 5000) #Vehicle + w_min, w_max, Nsample
-    ds = Robot.generate_outliers_uniform(-10, 10, 5000, 0.5, 0.5, 0.7, 2.2, 2.5, 2.5) #ratio_V, ratio_o, bias_V, bias_o, coef_V, coef_o
+    #ds = Robot.generate_outliers_uniform(-10, 10, 5000, 0.5, 0.5, 0.7, 2.2, 2.5, 2.5) #ratio_V, ratio_o, bias_V, bias_o, coef_V, coef_o
 
 
     #filename, type = '/home/poine/work/homere/homere_control/data/homere_io_10.npz', 'homere'
     #ds = ut.data_converter(filename, type)
 
-    comparison.comparaison_minkowski(Robot, ds, 8)
 
-    descr.plot3D(ds, step=4) #step=4 (by default)
+    #descr.plot3D(ds, step=4) #step=4 (by default)
+    #plt.show()
+    #Rr_est, Rl_est, L_est = odo.all_param_AN(ds, odo.minkowski_loss)
+    #res = odo.residuals(ds, Rr_est, Rl_est, L_est)
+    #print res
+
+    comparison.comparison_ANs(1, 4) #sigma_V_max, sigma_omega_max
     plt.show()
 
     #odo.all_methods(ds)
