@@ -39,7 +39,7 @@ def wheels_radius_AN(ds, myloss='mean_squared_error'):
     output_layer = hidden_layer(input_layer)
     ann = keras.models.Model(inputs=input_layer, outputs=output_layer)
     opt = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
-    ann.compile(loss=myloss(1.5), optimizer=opt)
+    ann.compile(loss='mean_squared_error', optimizer=opt)
     ann_in, ann_out = input, V
     history = ann.fit(ann_in, ann_out, epochs=30, batch_size=64,  verbose=0,
                    shuffle=True, validation_split=0.1)#, callbacks=callbacks)
@@ -189,7 +189,7 @@ def space_wheels_RANSAC(ds, R_est):
     L_est = 1/ransac_space.estimator_.coef_[0]
     return L_est
 
-def residuals(ds, Rr_est, Rl_est, L_est):
+def residuals(ds, Rr_est, Rl_est, L_est, plot=True):
     """
         Computes residuals: Vreal-Vestimated and omega_real - omega_estimated
         Gives sigma and mu. (std and mean)
@@ -203,6 +203,16 @@ def residuals(ds, Rr_est, Rl_est, L_est):
 
     res_V_sigma, res_V_mu = np.std(res_V), np.mean(res_V)
     res_omega_sigma, res_omega_mu = np.std(res_omega), np.mean(res_omega)
+
+    if plot :
+
+        plt.figure()
+        plt.subplot(121)
+        plt.hist(res_V, normed=True, bins=30)
+        plt.title("$V$ residuals")
+        plt.subplot(122)
+        plt.hist(res_omega, normed=True, bins=30)
+        plt.title("$\Omega$ residuals")
 
     return [[res_V, res_V_mu, res_V_sigma], [res_omega, res_omega_mu, res_omega_sigma]]
 

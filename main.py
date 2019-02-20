@@ -33,9 +33,19 @@ if __name__ == '__main__':
     #res = odo.residuals(ds, Rr_est, Rl_est, L_est)
     #print res
 
-    comparison.comparison_ANs(1, 4) #sigma_V_max, sigma_omega_max
+    #comparison.comparison_noise(1, 4) #sigma_V_max, sigma_omega_max
+    #plt.show()
+
+    file, type = '/home/poine/work/homere/homere_control/data/homere_io_10.npz', 'homere'
+    ds = ut.data_converter(file, type)
+
+    #Rr_est, Rl_est, L_est = odo.all_param_AN(ds)
+    comparison.comparaison_minkowski(ds, 10)
+
     plt.show()
 
+    #descr.plot3D(ds, step=10)
+    #plt.show()
     #odo.all_methods(ds)
 
 
