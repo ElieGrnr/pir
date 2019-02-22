@@ -72,8 +72,8 @@ def space_wheels_AN(ds, R_est, myloss='mean_squared_error'):
     history = ann.fit(ann_in, ann_out, epochs=30, batch_size=64,  verbose=0,
                    shuffle=True, validation_split=0.1)#, callbacks=callbacks)
     weights = hidden_layer.get_weights()
-    L_est1 = 1/(2*weights[0][0]/Rr_est)
-    L_est2 = -1/(2*weights[0][1]/Rl_est)
+    L_est1 = 1/(weights[0][0]/Rr_est)
+    L_est2 = -1/(weights[0][1]/Rl_est)
     L_est = (L_est1+L_est2)/2   #moyenne des deux longueurs obtenues
     return L_est[0]
 
@@ -115,8 +115,8 @@ def all_param_AN(ds, myloss='mean_squared_error'):
     weights = hidden_layer.get_weights()[0]
     Rr_est = weights[0][0]*2
     Rl_est = weights[1][0]*2
-    L_est1 = 1/(2*weights[0][1]/Rr_est)
-    L_est2 = -1/(2*weights[1][1]/Rr_est)
+    L_est1 = 1/(weights[0][1]/Rr_est)
+    L_est2 = -1/(weights[1][1]/Rr_est)
     return Rr_est, Rl_est, (L_est2+L_est1)/2 #moyenne des deux longueurs obtenues
 
 def wheels_radius_INV(ds):
@@ -148,7 +148,7 @@ def space_wheels_INV(ds, R_est):
     Rl_est, Rr_est = R_est[1], R_est[0]
     Nsample = len(ds[0])
     H = np.zeros((Nsample,1))
-    H[:,0] = 0.5*(Rr_est*wr-Rl_est*(wl)) 
+    H[:,0] = (Rr_est*wr-Rl_est*(wl)) #*0.5 ????????
     X = np.dot(np.linalg.pinv(H),omega)
     L_est = 1/X[0]
     return L_est
@@ -183,7 +183,7 @@ def space_wheels_RANSAC(ds, R_est):
     Rr_est, Rl_est = R_est[0], R_est[1]
     Nsample = len(ds[0])
     H = np.zeros((Nsample,1))
-    H[:,0] = 0.5*(Rr_est*wr-Rl_est*(wl)) 
+    H[:,0] = (Rr_est*wr-Rl_est*(wl)) #*0.5 ????????
     ransac_space = sklearn.linear_model.RANSACRegressor(base_estimator=sklearn.linear_model.LinearRegression(fit_intercept=False))
     ransac_space.fit(H, omega)
     L_est = 1/ransac_space.estimator_.coef_[0]

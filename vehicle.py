@@ -40,7 +40,7 @@ class Vehicle:
         wr = np.random.uniform(w_min, w_max, Nsample) #loi uniforme
         wl = np.random.uniform(w_min, w_max, Nsample)
         V = 0.5*(Rr*wr+Rl*wl)+sigma_V*np.random.randn(Nsample) #calcul de V avec bruit
-        omega = 0.5*(Rr*wr-Rl*(wl))/L+sigma_omega*np.random.randn(Nsample)
+        omega = (Rr*wr-Rl*(wl))/L+sigma_omega*np.random.randn(Nsample) #*0.5 ???????????
         ds = np.array([wr, wl, V, omega])
         return ds
 
