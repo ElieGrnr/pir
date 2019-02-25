@@ -236,3 +236,55 @@ def all_methods(ds):
     print "-------Rayon roue droite estimé : ", Rr_est
     print "-------Rayon roue gauche estimé : ", Rl_est
     print "-------Voie estimée : ", L_est
+
+
+#----------------------------------Other kind of regression---------------------------
+#Don't take account Rr, Rl and L, only coefficient.
+
+def coef_INV(ds):
+    wr = ds[0]
+    wl = ds[1]
+    V = ds[2]
+    omega = ds[3]
+    Nsample = len(wr)
+
+    H1 = np.zeros((Nsample,2))
+    H1[:,0] = wr
+    H1[:,1] = wl 
+    X1 = np.dot(np.linalg.pinv(H1),V) #X=coef estimés a,b : V=a*wr+b*wl
+    a, b = X1[0], X1[1]
+
+    H2 = np.zeros((Nsample,2))
+    H2[:,0] = wr
+    H2[:,1] = wl 
+    X2 = np.dot(np.linalg.pinv(H2),omega) #X=coef estimés c,d : omega=c*wr+d*wl
+    c, d = X2[0], X2[1]
+
+    return a, b, c, d
+
+def residuals2(ds, a, b, c, d, plot=True):
+    """
+        Computes residuals: Vreal-Vestimated and omega_real - omega_estimated
+        Gives sigma and mu. (std and mean)
+    """
+    wr = ds[0]
+    wl = ds[1]
+    V = ds[2]
+    omega = ds[3]
+    res_V = V - (a*wr+b*wl) #res=Vréel - Vestimé
+    res_omega = omega - (c*wr+d*wl)  #res=Oréel-Oestimé
+
+    res_V_sigma, res_V_mu = np.std(res_V), np.mean(res_V)
+    res_omega_sigma, res_omega_mu = np.std(res_omega), np.mean(res_omega)
+
+    if plot :
+
+        plt.figure()
+        plt.subplot(121)
+        plt.hist(res_V, normed=True, bins=30)
+        plt.title("$V$ residuals")
+        plt.subplot(122)
+        plt.hist(res_omega, normed=True, bins=30)
+        plt.title("$\Omega$ residuals")
+
+    return [[res_V, res_V_mu, res_V_sigma], [res_omega, res_omega_mu, res_omega_sigma]]
