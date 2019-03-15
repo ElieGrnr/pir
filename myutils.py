@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division
+from math import sqrt
+import numpy as np
 
 import homere_control.io_dataset as iodata
-import keras.backend as K 
+
 
 def data_converter(filename, type):
 	"""
@@ -13,22 +15,32 @@ def data_converter(filename, type):
 
 		Out : ds = [wr, wl, V, omega]
 	"""
+
 	original_ds = iodata.DataSet(filename, type)
+
 	wl = original_ds.enc_vel_lw
 	wr = original_ds.enc_vel_rw
-	truth_lvel_body_1 = iodata.interpolate(original_ds.truth_lvel_body, original_ds.truth_vel_stamp, original_ds.enc_vel_stamp)
-	truth_rvel_1 = iodata.interpolate(original_ds.truth_rvel, original_ds.truth_vel_stamp,original_ds.enc_vel_stamp)
-	V = truth_lvel_body_1[:,0]
-	omega = truth_rvel_1[:,2]
-	converted_ds = [wr, wl, V, omega]
-	return converted_ds
+
+	original_ds.truth_lvel_body = iodata.interpolate(original_ds.truth_lvel_body, original_ds.truth_vel_stamp, original_ds.enc_vel_stamp)
+	original_ds.truth_rvel = iodata.interpolate(original_ds.truth_rvel, original_ds.truth_vel_stamp, original_ds.enc_vel_stamp)
+
+	truth_vx, truth_vy = original_ds.truth_lvel_body[:,0], original_ds.truth_lvel_body[:,1]
+	truth_V = [sqrt(truth_vx[i]**2+truth_vy[i]**2) for i in range(len(truth_vy))]
+	truth_omega = original_ds.truth_rvel[:,2]
+
+	print len(wr), len(wl), len(truth_omega), len(truth_V)
+
+	time_encoders = original_ds.enc_vel_stamp
+	#time_velocity = original_ds.truth_vel_stamp	
+
+	converted_ds = [wr, wl, truth_V, truth_omega]
+
+	return converted_ds, time_encoders
+
+#filename, type = './data/oscar_io_oval.npz', 'oscar'
+#ds, time = data_converter(filename, type)
 
 
-def minkowski_loss(y_true, y_pred):
-	"""
-		Compute Minkowski's loss for AN. Better than MSE if outliers.
-	"""
-	r = 0.4 #often 0.4
-	return r*K.sum(K.pow(K.abs(y_pred-y_true)),r) 
+
 
 
