@@ -28,7 +28,7 @@ def data_converter(filename, type):
 	truth_V = [sqrt(truth_vx[i]**2+truth_vy[i]**2) for i in range(len(truth_vy))]
 	truth_omega = original_ds.truth_rvel[:,2]
 
-	print len(wr), len(wl), len(truth_omega), len(truth_V)
+	#print len(wr), len(wl), len(truth_omega), len(truth_V)
 
 	time_encoders = original_ds.enc_vel_stamp
 	#time_velocity = original_ds.truth_vel_stamp	
@@ -39,8 +39,3 @@ def data_converter(filename, type):
 
 #filename, type = './data/oscar_io_oval.npz', 'oscar'
 #ds, time = data_converter(filename, type)
-
-
-
-
-
