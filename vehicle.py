@@ -3,7 +3,7 @@
 from __future__ import division
 import os, logging, numpy as np, matplotlib.pyplot as plt
 import random
-import keras, pickle
+#import keras, pickle
 import pdb
 
 class Vehicle:

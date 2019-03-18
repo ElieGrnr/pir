@@ -2,6 +2,7 @@ from __future__ import division
 
 from vehicle import Vehicle
 import myutils as ut
+import odometry_test as odo
 
 from math import cos, sin 
 import matplotlib.pyplot as plt
@@ -23,12 +24,12 @@ class State:
 		self.omega = omega
 
 
-class LinearOdometer:
+class LinearOdometer(State):
 
 	def __init__(self, ds, time, linear_formula):
 		self.wr = ds[0]
 		self.wl = ds[1]
-		self.time = time
+		self.time = time #len(time)=len(wr)=len(wl)
 		self.linear_formula = linear_formula # =[a, b, c, d]
 		self.index = 0
 
@@ -45,38 +46,36 @@ class LinearOdometer:
 		return v, omega, dt
 
 
-def compute_position(ds, time, linear_formula):
-	x = []
-	y = []
-	theta = []
-	Nsample = len(time)
+	def compute_position(self, initial_position):
+		self.x_positions = [] # a list of x_position
+		self.y_positions = [] # a list of y_position
+		self.theta_positions = [] # a list of theta_position
+		Nsample = len(self.time)
 
-	state = State()
-	odometer = LinearOdometer(ds, time, linear_formula)
+		x0, y0, theta0 = initial_position[0], initial_position[1], initial_position[2],
+		self.x, self.y, self.theta = x0, y0, theta0
 
-	x.append(state.x)
-	y.append(state.y)
-	theta.append(state.theta)
+		self.x_positions.append(x0)
+		self.y_positions.append(y0)
+		self.theta_positions.append(theta0)
 
-	for i in range(Nsample):
-		v, omega, dt = odometer.compute()
-		state.update(v, omega, dt)
-		x.append(state.x)
-		y.append(state.y)
-		theta.append(state.theta)
+		for i in range(Nsample):
+			v, omega, dt = self.compute()
+			self.update(v, omega, dt)
+			self.x_positions.append(self.x)
+			self.y_positions.append(self.y)
+			self.theta_positions.append(self.theta)
 
-	return x, y, theta
+		return self.x_positions, self.y_positions, self.theta_positions #list
+
+	def plot(self, label):
+		plt.axis('equal')
+		plt.grid('on', 'both', 'both', linestyle='--')
+		plt.plot(self.x_positions, self.y_positions, label=label)
 
 
 
-filename, type = './data/oscar_io_oval.npz', 'oscar'
-ds, time = ut.data_converter(filename, type)
 
-x, y, theta = compute_position(ds, time, [1, 1, 1, 1])
-
-plt.figure()
-plt.plot(x, y)
-plt.show()
 
 
 

@@ -15,6 +15,7 @@ from vehicle import Vehicle
 import description as descr
 import myutils as ut
 import odometry_test as odo
+import odometry
 import comparison
 
 import numpy as np, matplotlib.pyplot as plt
@@ -26,53 +27,55 @@ if __name__ == '__main__':
     #ds = Robot.generate_outliers_uniform(-10, 10, 5000, 0.5, 0.5, 0.7, 2.2, 2.5, 2.5) #ratio_V, ratio_o, bias_V, bias_o, coef_V, coef_o
 
 
-    filename, type = './data/oscar_io_oval.npz', 'oscar'
-    #filename, type = '/home/poine/work/homere/homere_control/data/rosmip/gazebo/rosmip_io_02.npz', 'rosmip'
-    #filename, type = '/home/poine/work/oscar/oscar/oscar_control/paths/enac_bench/path_01.npz', 'rosmip'
-    ds = ut.data_converter(filename, type)[0]
+    #filename, type = './data/oscar_io_track_z.npz', 'oscar'
+    #filename, type = './data/oscar_io_zigzag.npz', 'oscar'
+    filename, type = './data/oscar_io_figure_of_eight.npz', 'oscar'
+    #filename, type = './data/oscar_io_oval.npz', 'oscar'
+    #filename, type = './data/oscar_io_vel_sin_oval.npz', 'oscar'
 
+    ds, time = ut.data_converter(filename, type)
+    print(time[-1]-time[0])
+    initial_position = ut.data_initial_position(filename, type)
 
-    #descr.plot3D(ds, step=10) #step=4 (by default)
-    #plt.show()
-    
-    a, b, c, d = odo.coef_INV(ds)
-    Rr_est, Rl_est = odo.wheels_radius_INV(ds)
-    L_est = odo.space_wheels_INV(ds, (Rr_est, Rl_est))
+    #pseudoinv
+    a1, b1, c1, d1 = odo.coef_INV(ds)
+    linear_formula1 = [a1, b1, c1, d1]
+    print linear_formula1
 
-    res = odo.residuals(ds, Rr_est, Rl_est, L_est)
-    res2 = odo.residuals2(ds, a, b, c, d)
+    #RANSAC
+    Rr_est, Rl_est = odo.wheels_radius_RANSAC(ds)
+    L_est = odo.space_wheels_RANSAC(ds, (Rr_est, Rl_est))
+    linear_formula2 = odo.converts_into_linear(Rr_est, Rl_est, L_est)
+    print linear_formula2
 
-    print "---------|-----mu-----|-----sigma-------|"
-    print "-----------------------------------------"
-    print "meth1----|  ", res[1][1],"   |   ", res[1][2]
-    print "-----------------------------------------"
-    print "meth2----|  ", res2[1][1],"   |   ", res2[1][2]
+    #ANN
+    Rr_est, Rl_est, L_est = odo.all_param_AN(ds)
+    linear_formula3 = odo.converts_into_linear(Rr_est, Rl_est, L_est)
+    print linear_formula3
+
+    #Rr_est, Rl_est = odo.wheels_radius_INV(ds)
+    #L_est = odo.space_wheels_INV(ds, (Rr_est, Rl_est))
+
     #res = odo.residuals(ds, Rr_est, Rl_est, L_est)
-    #print res
+    #res2 = odo.residuals2(ds, a, b, c, d)
 
-    #comparison.comparison_noise(1, 4) #sigma_V_max, sigma_omega_max
-    #plt.show()
+    odometer1 = odometry.LinearOdometer(ds, time, linear_formula1)
+    odometer1.compute_position(initial_position)
 
-    """file, type = '/home/poine/work/homere/homere_control/data/homere_io_10.npz', 'homere'
-    if len(sys.argv) > 1: file = sys.argv[1]
-    ds = ut.data_converter(file, type)
-    print odo.all_param_AN(ds)"""
+    odometer2 = odometry.LinearOdometer(ds, time, linear_formula2)
+    odometer2.compute_position(initial_position)
 
-    #Rr_est, Rl_est, L_est = odo.all_param_AN(ds)
-    #comparison.comparaison_minkowski(ds, 10)
+    odometer3 = odometry.LinearOdometer(ds, time, linear_formula3)
+    odometer3.compute_position(initial_position)
 
+    plt.figure()
+    plt.title('figure_of_eight')
+    ut.plot_truth(filename, type)
+    odometer1.plot('odometry (pseudoinv)')
+    odometer2.plot('odometry (RANSAC)')
+    odometer3.plot('odometry (simple ANN)')
+    plt.legend()
     plt.show()
-
-    #descr.plot3D(ds, step=10)
-    #plt.show()
-    #odo.all_methods(ds)
-
-
-    #plt.figure()
-    #descr.data_description(ds)
-    #descr.plot3D(ds, 4)
-    #descr.results_overlaid_on_data(ds, Rr_est, Rl_est, L_est, -10, 10)
-    #plt.show()"""
 
     
 

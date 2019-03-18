@@ -183,7 +183,7 @@ def space_wheels_RANSAC(ds, R_est):
     Rr_est, Rl_est = R_est[0], R_est[1]
     Nsample = len(ds[0])
     H = np.zeros((Nsample,1))
-    H[:,0] = (Rr_est*wr-Rl_est*(wl)) #*0.5 ????????
+    H[:,0] = (Rr_est*wr-Rl_est*(wl))
     ransac_space = sklearn.linear_model.RANSACRegressor(base_estimator=sklearn.linear_model.LinearRegression(fit_intercept=False))
     ransac_space.fit(H, omega)
     L_est = 1/ransac_space.estimator_.coef_[0]
@@ -242,6 +242,13 @@ def all_methods(ds):
 #Don't take account Rr, Rl and L, only coefficient.
 
 def coef_INV(ds):
+    """
+    Don't take account Rr, Rl and L, only coefficient a, b, c, d
+    a = Rr/2
+    b = Rl/2
+    c = Rr/L
+    d = -Rl/L
+    """
     wr = ds[0]
     wl = ds[1]
     V = ds[2]
@@ -288,3 +295,17 @@ def residuals2(ds, a, b, c, d, plot=True):
         plt.title("$\Omega$ residuals")
 
     return [[res_V, res_V_mu, res_V_sigma], [res_omega, res_omega_mu, res_omega_sigma]]
+
+
+#---------------------------Converting to LinearOdometry-----------------------------
+
+def converts_into_linear(Rr, Rl, L):
+    """
+    Converts vehicle parameters Rr, Rl and L into linear coef a, b, c, d
+    Returns a list [a, b, c, d]
+    """
+    a = Rr/2
+    b = Rl/2
+    c = Rr/L
+    d = -Rl/L
+    return [a, b, c, d]
