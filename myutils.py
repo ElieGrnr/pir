@@ -1,9 +1,9 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division
 from math import sqrt
 import numpy as np
 import matplotlib.pyplot as plt
+import tf.transformations
 
 import homere_control.io_dataset as iodata
 
@@ -38,15 +38,25 @@ def data_converter(filename, type):
 
 def data_initial_position(filename, type):
 	original_ds = iodata.DataSet(filename, type)
-	x0, y0, theta0 = original_ds.truth_pos[0][0], original_ds.truth_pos[0][1], original_ds.truth_yaw[0]
+
+	truth_yaw = np.array([tf.transformations.euler_from_quaternion(q, axes='sxyz')[2] for q in original_ds.truth_ori])
+
+	x0, y0, theta0 = original_ds.truth_pos[0][0], original_ds.truth_pos[0][1], truth_yaw[0]
 	return x0, y0, theta0
 
-def plot_truth(filename, type):
+def plot_true_position(filename, type):
 	original_ds = iodata.DataSet(filename, type)
-	plt.plot(original_ds.truth_pos[:,0], original_ds.truth_pos[:,1], label='mocap')
+	plt.plot(original_ds.truth_pos[:,0], original_ds.truth_pos[:,1], label='truth', linestyle='--')
 	plt.axis('equal')
 	plt.xlabel('x (m)')
 	plt.ylabel('y (m)')
+
+def plot_true_orientation(filename, type):
+	original_ds = iodata.DataSet(filename, type)
+	plt.plot(original_ds.truth_stamp, original_ds.truth_ori, label='truth')
+	plt.xlabel('time (sec)')
+	plt.ylabel('thetat (rad)')
+
 
 
 #filename, type = './data/oscar_io_oval.npz', 'oscar'

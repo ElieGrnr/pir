@@ -17,6 +17,7 @@ import myutils as ut
 import odometry_test as odo
 import odometry
 import comparison
+import fit_odometry
 
 import numpy as np, matplotlib.pyplot as plt
 import homere_control.io_dataset as iodata
@@ -27,55 +28,69 @@ if __name__ == '__main__':
     #ds = Robot.generate_outliers_uniform(-10, 10, 5000, 0.5, 0.5, 0.7, 2.2, 2.5, 2.5) #ratio_V, ratio_o, bias_V, bias_o, coef_V, coef_o
 
 
-    #filename, type = './data/oscar_io_track_z.npz', 'oscar'
+    #--------(Reality) Ackermann : Oscar-------------------------------------------------------------
+    filename, type = './data/oscar_io_track_z.npz', 'oscar'
     #filename, type = './data/oscar_io_zigzag.npz', 'oscar'
-    filename, type = './data/oscar_io_figure_of_eight.npz', 'oscar'
+    #filename, type = './data/oscar_io_figure_of_eight.npz', 'oscar'
     #filename, type = './data/oscar_io_oval.npz', 'oscar'
     #filename, type = './data/oscar_io_vel_sin_oval.npz', 'oscar'
 
+    #--------(Reality) Diff Drive : Rosmip-----------------------------------------------------------
+    #filename, type = './data/track_0.4mps.npz', 'oscar'
+    #filename, type = './data/rosmip_z_foe_0.6ms.npz', 'oscar'
+    #filename, type = './data/rosmip_z_foe_0.4ms.npz', 'oscar'
+    #filename, type = './data/rosmip_z_foe_0.2ms.npz', 'oscar'
+    #filename, type = './data/rosmip_z_foe_0.8ms.npz', 'oscar'
+    #filename, type = './data/rosmip_z_oval01_0.4ms.npz', 'oscar'
+
+    #--------(Simu Gazebo) Diff Drive : Rosmip-------------------------------------------------------
+    #filename, type = './data/track_0.5mps_simu.npz', 'homere'
+    #filename, type = './data/rosmip_z_foe_0.2ms_simu.npz', 'homere'
+
+
     ds, time = ut.data_converter(filename, type)
-    print(time[-1]-time[0])
     initial_position = ut.data_initial_position(filename, type)
 
-    #pseudoinv
+    """#pseudoinv
     a1, b1, c1, d1 = odo.coef_INV(ds)
     linear_formula1 = [a1, b1, c1, d1]
     print linear_formula1
 
     #RANSAC
-    Rr_est, Rl_est = odo.wheels_radius_RANSAC(ds)
-    L_est = odo.space_wheels_RANSAC(ds, (Rr_est, Rl_est))
-    linear_formula2 = odo.converts_into_linear(Rr_est, Rl_est, L_est)
+    Rr_est2, Rl_est2 = odo.wheels_radius_RANSAC(ds)
+    L_est2 = odo.space_wheels_RANSAC(ds, (Rr_est2, Rl_est2))
+    print Rr_est2, Rl_est2, L_est2
+    linear_formula2 = odo.converts_into_linear(Rr_est2, Rl_est2, L_est2)
     print linear_formula2
 
-    #ANN
-    Rr_est, Rl_est, L_est = odo.all_param_AN(ds)
-    linear_formula3 = odo.converts_into_linear(Rr_est, Rl_est, L_est)
+    #ANN (not use with weights)
+    Rr_est3, Rl_est3, L_est3 = odo.all_param_AN(ds, odo.minkowski_loss)
+    print Rr_est3, Rl_est3, L_est3
+    linear_formula3 = odo.converts_into_linear(Rr_est3, Rl_est3, L_est3)
     print linear_formula3
 
-    #Rr_est, Rl_est = odo.wheels_radius_INV(ds)
-    #L_est = odo.space_wheels_INV(ds, (Rr_est, Rl_est))
+    #filename, type = './data/track_0.5mps_simu.npz', 'homere'
+    #filename, type = './data/rosmip_z_foe_0.2ms_simu.npz', 'homere'
+    #ds, time = ut.data_converter(filename, type)
+    #initial_position = ut.data_initial_position(filename, type)
 
-    #res = odo.residuals(ds, Rr_est, Rl_est, L_est)
-    #res2 = odo.residuals2(ds, a, b, c, d)
 
     odometer1 = odometry.LinearOdometer(ds, time, linear_formula1)
     odometer1.compute_position(initial_position)
 
     odometer2 = odometry.LinearOdometer(ds, time, linear_formula2)
-    odometer2.compute_position(initial_position)
+    odometer2.compute_position(initial_position)"""
 
-    odometer3 = odometry.LinearOdometer(ds, time, linear_formula3)
+    filename_fit, type_fit = './data/rosmip_z_foe_0.2ms_simu.npz', 'homere'
+    ds_fit, time_fit = ut.data_converter(filename_fit, type_fit)
+    odometer3 = odometry.NeuralNetworkOdometer(ds, time, fit_odometry.ann2, ds)
     odometer3.compute_position(initial_position)
 
     plt.figure()
-    plt.title('figure_of_eight')
-    ut.plot_truth(filename, type)
-    odometer1.plot('odometry (pseudoinv)')
-    odometer2.plot('odometry (RANSAC)')
-    odometer3.plot('odometry (simple ANN)')
+    plt.title('track')
+    ut.plot_true_position(filename, type)
+    #odometer1.plot_position('odometry (pseudoinv)')
+    #odometer2.plot_position('odometry (RANSAC)')
+    odometer3.plot_position('odometry (simple ANN)')
     plt.legend()
     plt.show()
-
-    
-

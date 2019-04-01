@@ -17,7 +17,7 @@ def minkowski_loss(y_true, y_pred):
     """
         Compute Minkowski's loss for AN. Better than MSE if outliers (maybe not).
     """
-    r = 1.5 #often 0.4
+    r = 1 #often 0.4
     return K.mean(K.pow(K.abs(y_pred-y_true),r))
 
 def wheels_radius_AN(ds, myloss='mean_squared_error'):
@@ -39,7 +39,7 @@ def wheels_radius_AN(ds, myloss='mean_squared_error'):
     output_layer = hidden_layer(input_layer)
     ann = keras.models.Model(inputs=input_layer, outputs=output_layer)
     opt = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
-    ann.compile(loss='mean_squared_error', optimizer=opt)
+    ann.compile(loss=myloss, optimizer=opt)
     ann_in, ann_out = input, V
     history = ann.fit(ann_in, ann_out, epochs=30, batch_size=64,  verbose=0,
                    shuffle=True, validation_split=0.1)#, callbacks=callbacks)

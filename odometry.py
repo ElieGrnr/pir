@@ -15,6 +15,10 @@ class State:
 		self.v = v
 		self.theta = theta
 		self.omega = omega
+		self.x_positions = [] # a list of x_position
+		self.y_positions = [] # a list of y_position
+		self.theta_positions = [] # a list of theta_position
+
 
 	def update(self, v, omega, dt):
 		self.x = self.x + v*cos(self.theta)*dt
@@ -22,6 +26,57 @@ class State:
 		self.theta = self.theta + omega * dt
 		self.v = v
 		self.omega = omega
+
+	def plot_position(self, label):
+		plt.axis('equal')
+		plt.grid('on', 'both', 'both', linestyle='--')
+		plt.plot(self.x_positions, self.y_positions, label=label)
+
+	def plot_orientation(self, label):
+		plt.grid('on', 'both', 'both', linestyle='--')
+		plt.plot(self.time[1:], self.theta_positions, label=label)
+
+
+
+
+class NeuralNetworkOdometer(State):
+
+	def __init__(self, ds, time, ann, ds_fit):
+		self.time = time
+		self.ann = ann #function
+		self.ds = ds
+		self.ds_fit = ds_fit
+		State.__init__(self, x=0, y=0, theta=0, v=0, omega=0)
+
+	def compute(self):
+		velocity = self.ann(self.ds, self.ds_fit) #veocity = [V, omega]
+		V = velocity[:,0]
+		omega = velocity[:,1]
+		return V, omega
+
+	def compute_position(self, initial_position):
+		Nsample = len(self.time)
+
+		x0, y0, theta0 = initial_position[0], initial_position[1], initial_position[2],
+		self.x, self.y, self.theta = x0, y0, theta0
+
+		self.x_positions.append(x0)
+		self.y_positions.append(y0)
+		self.theta_positions.append(theta0)
+
+		V, omega = self.compute()
+
+		for i in range(Nsample):
+			if i==0:
+				dt = self.time[1]-self.time[0]
+			else:
+				dt = self.time[i]-self.time[i-1]
+			self.update(V[i], omega[i], dt)
+			self.x_positions.append(self.x)
+			self.y_positions.append(self.y)
+			self.theta_positions.append(self.theta)
+
+		return self.x_positions, self.y_positions, self.theta_positions #list
 
 
 class LinearOdometer(State):
@@ -32,6 +87,7 @@ class LinearOdometer(State):
 		self.time = time #len(time)=len(wr)=len(wl)
 		self.linear_formula = linear_formula # =[a, b, c, d]
 		self.index = 0
+		State.__init__(self, x=0, y=0, theta=0, v=0, omega=0)
 
 	def compute(self):
 		i = self.index
@@ -47,9 +103,6 @@ class LinearOdometer(State):
 
 
 	def compute_position(self, initial_position):
-		self.x_positions = [] # a list of x_position
-		self.y_positions = [] # a list of y_position
-		self.theta_positions = [] # a list of theta_position
 		Nsample = len(self.time)
 
 		x0, y0, theta0 = initial_position[0], initial_position[1], initial_position[2],
@@ -67,11 +120,6 @@ class LinearOdometer(State):
 			self.theta_positions.append(self.theta)
 
 		return self.x_positions, self.y_positions, self.theta_positions #list
-
-	def plot(self, label):
-		plt.axis('equal')
-		plt.grid('on', 'both', 'both', linestyle='--')
-		plt.plot(self.x_positions, self.y_positions, label=label)
 
 
 
